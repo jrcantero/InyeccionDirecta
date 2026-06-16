@@ -8,6 +8,7 @@ st.set_page_config(page_title="Procesador de Inyección Directa", page_icon="�
 
 st.title("🧪 Procesador de Masa Monoisotópica")
 st.write("Sube tu archivo CSV (separado por punto y coma), procesa las fórmulas químicas y descarga los resultados.")
+st.write("El archivo debe tener las columnas Muestra y Formula")
 
 # 1. Componente para subir el archivo
 uploaded_file = st.file_uploader("Elige tu archivo CSV", type=['csv'])
