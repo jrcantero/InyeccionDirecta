@@ -57,7 +57,7 @@ if uploaded_file is not None:
                             })
                         except Exception as e:
                             # Por si hay alguna fórmula mal escrita en el CSV
-                            st.warning(\u0066"Error al procesar la fórmula '{formula}' en la fila {index}: {e}")
+                            st.warning("Error al procesar la fórmula '{formula}' en la fila {index}: {e}")
 
                     # Crear el nuevo DataFrame
                     new_df = pd.DataFrame(new_rows)
@@ -79,4 +79,4 @@ if uploaded_file is not None:
                     )
 
     except Exception as e:
-        st.error(\u0066"Ocurrió un error al leer el archivo: {e}")
+        st.error("Ocurrió un error al leer el archivo: {e}")
