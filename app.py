@@ -4,7 +4,7 @@ from molmass import Formula
 import io
 
 # Configuración de la página web
-st.set_page_config(page_title="Procesador de Inyección Directa", page_icon="🧪", layout="centered")
+st.set_page_config(page_title="Obtener masas para Inyección Directa", page_icon="🧪", layout="centered")
 
 st.title("🧪 Procesador de Masa Monoisotópica")
 st.write("Sube tu archivo CSV (separado por punto y coma), procesa las fórmulas químicas y descarga los resultados.")
@@ -26,52 +26,61 @@ if uploaded_file is not None:
             st.success("Archivo subido correctamente. Vista previa:")
             st.dataframe(samples.head()) # Muestra las primeras filas en la web
 
-            # Botón para iniciar el procesamiento
+            # Botón para comenzar
             if st.button("Procesar Datos"):
                 with st.spinner("Calculando masas espectrales..."):
                     
-                    monoisotopica_H = 1.007825
+                    proton = 1.007276
                     new_rows = []
 
-                    # Tu lógica original de procesamiento
+                    def calcular_iones(molecula, ion):
+                        composicion = molecula.composition().dataframe()
+
+                        if ion=='pos':
+                            composicion.loc[composicion.index == 'H', 'Count'] += 1
+                        elif ion=='neg':
+                            composicion.loc[composicion.index == 'H', 'Count'] -= 1
+                        
+                        formula_ion = "".join(f"{element}{int(row['Count'])}" for element, row in composicion.iterrows())
+                        mol_ion = Formula(formula_ion)
+                        patron_isotopico = mol_ion.spectrum()
+                        masa_ion = max(patron_isotopico.values(), key=lambda p: p.intensity).mass
+
+                        return masa_ion
+
+                    # procesando las masas
                     for index, row in samples.iterrows():
                         name = row['Muestra']
                         formula = row['Formula']
                         
                         try:
                             mol = Formula(formula)
-                            molecular_weight = mol.mass
-                            spectrum = mol.spectrum()
-                            
-                            # Obtener la masa del pico más intenso
-                            masa_registrada = max(spectrum.values(), key=lambda p: p.intensity).mass
-
-                            masa_positiva = masa_registrada + monoisotopica_H
-                            masa_negativa = masa_registrada - monoisotopica_H
-                            
+                            molecular_weight = mol.monoisotopic_mass
+                                
                             new_rows.append({
                                 'Muestra': name,
                                 'Formula': formula,
                                 'Molecular Weight': molecular_weight,
-                                'M+H': masa_positiva,
-                                'M-H': masa_negativa
+                                'M+H': calcular_iones(mol, 'pos'),
+                                'M-H': calcular_iones(mol, 'neg')
                             })
+
                         except Exception as e:
-                            # Por si hay alguna fórmula mal escrita en el CSV
+                            # Por si existe algun error
                             st.warning("Error al procesar la fórmula '{formula}' en la fila {index}: {e}")
 
-                    # Crear el nuevo DataFrame
+                    # crear ultimo dataframe
                     new_df = pd.DataFrame(new_rows)
                     
                     st.write("### Resultados Procesados")
                     st.dataframe(new_df.head())
 
-                    # 2. Convertir el DataFrame a CSV en memoria para la descarga
+                    # convertir a csv
                     output_stream = io.StringIO()
-                    new_df.to_csv(output_stream, index=False)
+                    new_df.to_csv(output_stream, index=False, sep=';')
                     csv_data = output_stream.getvalue()
 
-                    # 3. Componente para descargar el archivo terminado
+                    # descarga de archivo
                     st.download_button(
                         label="📥 Descargar archivo procesado",
                         data=csv_data,
