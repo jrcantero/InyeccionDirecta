@@ -60,7 +60,7 @@ if uploaded_file is not None:
                             new_rows.append({
                                 'Muestra': name,
                                 'Formula': formula,
-                                'Molecular Weight': molecular_weight,
+                                'Masa': molecular_weight,
                                 'M+H': calcular_iones(mol, 'pos'),
                                 'M-H': calcular_iones(mol, 'neg')
                             })
